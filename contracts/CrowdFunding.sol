@@ -44,9 +44,36 @@ contract CrowdFunding {
             return numberOfCampaigns - 1;
         }
 
-    // function donateToCampaign() { }
+    function donateToCampaign(uint256 _id) public payable { 
+        uint256 amount = msg.value;
 
-    // function getDonators() { }
+        Campaign storage campaign = campaigns[_id];
 
-    // function getCampaigns() { }
+        campaign.donators.push(msg.sender);
+        campaign.donations.push(amount);
+
+        (bool sent,) = payable(campaign.owner).call{value: amount}("");
+
+        if(sent) {
+            campaign.amountCollected = campaign.amountCollected + amount;
+        }
+    }
+
+    function getDonators(uint _id) view public returns (address[] memory, uint[] memory) { 
+        return (campaigns[_id].donators, campaigns[_id].donations);
+    }
+
+    function getCampaigns() public view returns (Campaign[] memory) {
+        // Create a new array with the exact length of the number of campaigns
+        Campaign[] memory allCampaigns = new Campaign[](numberOfCampaigns);
+
+        // Fetch all the campaigns from the mapping storage
+        for(uint i = 0; i < numberOfCampaigns; i++) {
+            Campaign storage item = campaigns[i];
+
+            allCampaigns[i] = item;
+        }
+
+        return allCampaigns;
+    }
 }
